@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patriots Animation</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .node {
+      fill: #69b3a2;
+      stroke: #000;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+    text {
+      font: 12px sans-serif;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <script>
+    const width = 960, height = 600;
+
+    const svg = d3.select("#chart").append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const nodes = [
+      { id: "The Patriots", group: 1 },
+      { id: "Media Moguls", group: 2 },
+      { id: "Tech Giants", group: 2 },
+      { id: "Influential Figures", group: 2 },
+      { id: "Wealthy Leaders", group: 2 },
+      { id: "Complex Leaders", group: 3 },
+      { id: "Everyday People", group: 4 },
+      { id: "Hackers", group: 5 },
+      { id: "Reddit", group: 5 }
+    ];
+
+    const links = [
+      { source: "The Patriots", target: "Media Moguls", value: 1 },
+      { source: "The Patriots", target: "Tech Giants", value: 1 },
+      { source: "The Patriots", target: "Influential Figures", value: 1 },
+      { source: "The Patriots", target: "Wealthy Leaders", value: 1 },
+      { source: "Media Moguls", target: "Complex Leaders", value: 1 },
+      { source: "Tech Giants", target: "Complex Leaders", value: 1 },
+      { source: "Influential Figures", target: "Complex Leaders", value: 1 },
+      { source: "Wealthy Leaders", target: "Complex Leaders", value: 1 },
+      { source: "Complex Leaders", target: "Everyday People", value: 1 },
+      { source: "Everyday People", target: "Hackers", value: 1 },
+      { source: "Everyday People", target: "Reddit", value: 1 }
+    ];
+
+    const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+      .force("charge", d3.forceManyBody().strength(-500))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const link = svg.append("g")
+      .attr("class", "links")
+      .selectAll("line")
+      .data(links)
+      .enter().append("line")
+      .attr("class", "link")
+      .attr("stroke-width", d => Math.sqrt(d.value));
+
+    const node = svg.append("g")
+      .attr("class", "nodes")
+      .selectAll("circle")
+      .data(nodes)
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 10)
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    node.append("title")
+      .text(d => d.id);
+
+    const text = svg.append("g")
+      .attr("class", "labels")
+      .selectAll("text")
+      .data(nodes)
+      .enter().append("text")
+      .attr("dy", ".35em")
+      .attr("x", d => 12)
+      .attr("y", d => -12)
+      .text(d => d.id);
+
+    simulation.on("tick", () => {
+      link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      text
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+    });
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+  </script>
+</body>
+</html>
